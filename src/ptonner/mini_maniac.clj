@@ -12,7 +12,8 @@
   [& {:keys [name] :or {name ::default}}]
   {:leave (fn [{::keys [message] :as ctx}]
             (let [message-name (::name message)]
-              (update-in ctx [::trace name] (fnil assoc (ordered-map))
+              (update-in ctx [::trace name]
+                         (fnil assoc (ordered-map))
                          message-name message)))})
 
 (defn get-trace "Get the output of a trace"
@@ -31,8 +32,10 @@
   "Finalize a message if no value has been inserted"
   []
   {:enter (fn [{::keys [message] :as ctx}]
-            (assoc-in ctx [::message ::value] (or (::value message)
-                                                  ((get message ::fn identity) (::args message)))))})
+            (assoc-in ctx [::message ::value]
+                      (or (::value message)
+                          ((get message ::fn identity)
+                           (::args message)))))})
 
 ;; API
 (defmacro with-stack "Wrap execution with stack"
