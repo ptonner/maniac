@@ -4,7 +4,7 @@
 
 (def ^:dynamic context (atom {}))
 
-(defn- context-init []
+(defn context-init []
   {::interceptors (ordered-map)})
 
 ;; Interceptors
@@ -60,26 +60,30 @@
   [ctx message]
   (pap/execute (-> ctx ::interceptors vals)
                (assoc ctx ::message message)))
-(comment
-  (::message (process-message {::interceptors
-                               (ordered-map :trace (trace)
-                                            :mval (message-value) )}
-                              {::fn identity ::args [0] ::name :test})))
+
+(defn- send-message! [message]
+  (-> context
+      (swap! process-message message)
+      (get ::message)))
 
 (defn sample [name fun & {:as args}]
-  (let [message {::type ::sample
-                 ::name name
-                 ::fn fun
-                 ::args args}
-        ctx (swap! context process-message message)]
-    (get-in ctx [::message ::value])))
+  (-> {::type ::sample
+       ::name name
+       ::fn fun
+       ::args args}
+      send-message!
+      ::value))
 
 (comment (with-context
+           (tap> @context)
            (with-interceptor (trace :guide)
              (with-interceptor (message-value)
                (sample :a identity [0])))
+           (tap> @context)
            (with-interceptor (replay :guide)
              (with-interceptor (message-value)
-               (sample :a identity [1])))))
+               (sample :a identity [1])))
+           (tap> @context)))
+
 
 
