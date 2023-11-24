@@ -26,7 +26,7 @@
             (let [guide (get-in ctx [::trace prev])
                   name (:name message)]
               (assoc-in ctx [::message ::value]
-                        (get guide name))))})
+                        (get-in guide [name ::value]))))})
 
 (defn message-value
   "Finalize a message if no value has been inserted"
